@@ -1,0 +1,183 @@
+<!doctype html>
+<html lang="uz">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Monitoring — EcoTree</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-slate-950 text-slate-100">
+<header class="sticky top-0 z-40 border-b border-white/10 bg-slate-950/75 backdrop-blur">
+  <div class="max-w-6xl mx-auto px-4 py-4 flex items-center justify-between gap-4">
+    <a href="/" class="flex items-center gap-3">
+      <div class="h-9 w-9 rounded-xl bg-emerald-500/20 border border-emerald-400/30 grid place-items-center"><span class="text-emerald-300 font-bold">E</span></div>
+      <div><div class="font-semibold leading-5">EcoTree</div><div class="text-xs text-slate-400">Monitoring</div></div>
+    </a>
+    <nav class="flex items-center gap-2">
+      <a class="px-3 py-2 rounded-xl hover:bg-white/5 text-sm" href="/profile.html">Profile</a>
+      <a class="px-3 py-2 rounded-xl hover:bg-white/5 text-sm" href="/add.html">Add</a>
+      <a class="px-3 py-2 rounded-xl hover:bg-white/5 text-sm hidden" href="/admin.html" id="adminLink">Admin</a>
+    </nav>
+  </div>
+</header>
+
+<main class="max-w-6xl mx-auto px-4 py-8">
+  <div class="flex flex-wrap items-end justify-between gap-3">
+    <div>
+      <h1 class="text-2xl font-semibold">Live telemetry</h1>
+      <p class="text-slate-400 text-sm mt-1">SSE orqali real-time; device tanlang.</p>
+    </div>
+    <div class="flex items-center gap-2">
+      <select id="deviceSel" class="bg-slate-900 border border-white/10 rounded-xl px-3 py-2 text-sm"></select>
+      <button id="refreshBtn" class="px-4 py-2 rounded-xl border border-white/10 hover:bg-white/5 text-sm">Yangilash</button>
+    </div>
+  </div>
+
+  <section class="mt-6 grid sm:grid-cols-2 lg:grid-cols-4 gap-3">
+    <div class="p-4 rounded-2xl border border-white/10 bg-white/5"><div class="text-xs text-slate-400">Soil moisture</div><div class="mt-2 text-3xl font-semibold"><span id="sm">--</span><span class="text-slate-400 text-xl">%</span></div></div>
+    <div class="p-4 rounded-2xl border border-white/10 bg-white/5"><div class="text-xs text-slate-400">Battery</div><div class="mt-2 text-3xl font-semibold"><span id="bat">--</span><span class="text-slate-400 text-xl">%</span></div></div>
+    <div class="p-4 rounded-2xl border border-white/10 bg-white/5"><div class="text-xs text-slate-400">Flow</div><div class="mt-2 text-3xl font-semibold"><span id="flow">--</span><span class="text-slate-400 text-xl"> L/min</span></div></div>
+    <div class="p-4 rounded-2xl border border-white/10 bg-white/5"><div class="text-xs text-slate-400">Pump</div><div class="mt-2 text-3xl font-semibold" id="pump">--</div></div>
+  </section>
+
+  <section class="mt-6 grid lg:grid-cols-2 gap-3">
+    <div class="p-5 rounded-2xl border border-white/10 bg-slate-900/40">
+      <div class="flex items-center justify-between">
+        <div><div class="font-semibold">Oxirgi 50 telemetry</div><div class="text-xs text-slate-500">Serverga kelgan o'lchovlar</div></div>
+        <div class="text-xs px-2 py-1 rounded-full bg-white/10 border border-white/10" id="liveBadge">LIVE</div>
+      </div>
+      <div class="mt-4 overflow-auto">
+        <table class="min-w-full text-sm">
+          <thead class="text-slate-400"><tr><th class="text-left py-2 pr-3">Vaqt</th><th class="text-left py-2 pr-3">Namlik</th><th class="text-left py-2 pr-3">Bat</th><th class="text-left py-2 pr-3">Flow</th><th class="text-left py-2 pr-3">Pump</th></tr></thead>
+          <tbody id="rows" class="align-top"></tbody>
+        </table>
+      </div>
+      <div class="mt-3 text-xs text-slate-500" id="status">—</div>
+    </div>
+
+    <div class="p-5 rounded-2xl border border-white/10 bg-slate-900/40">
+      <div><div class="font-semibold">Tezkor boshqaruv</div><div class="text-xs text-slate-500">Pump ON/OFF + simulate</div></div>
+      <div class="mt-4 grid sm:grid-cols-3 gap-2">
+        <button id="onBtn" class="px-4 py-2 rounded-xl bg-emerald-500 text-slate-950 font-semibold hover:bg-emerald-400 text-sm">Pump ON</button>
+        <button id="offBtn" class="px-4 py-2 rounded-xl border border-white/10 hover:bg-white/5 text-sm">Pump OFF</button>
+        <button id="simBtn" class="px-4 py-2 rounded-xl border border-white/10 hover:bg-white/5 text-sm">Simulate</button>
+      </div>
+
+      <div class="mt-4 p-4 rounded-2xl border border-white/10 bg-white/5">
+        <div class="text-xs text-slate-400">Device key</div>
+        <div class="mt-2 text-xs text-slate-300 break-all" id="dkey">—</div>
+        <div class="mt-2 text-xs text-slate-500">Real sensor shu key bilan telemetry yuboradi.</div>
+      </div>
+
+      <div class="mt-3 text-xs text-slate-500">
+        SSE: <code class="px-1 py-0.5 rounded bg-white/10 border border-white/10">Nazorat Qilish Paneli</code>
+      </div>
+    </div>
+  </section>
+</main>
+
+<script>
+const $ = (id) => document.getElementById(id);
+const state = { user:null, device:null, devices:[] };
+
+async function api(path, opts={}) {
+  const res = await fetch(path, { headers:{'Content-Type':'application/json', ...(opts.headers||{})}, ...opts });
+  const data = await res.json().catch(()=> ({}));
+  if(!res.ok) throw new Error(data.error || ('HTTP '+res.status));
+  return data;
+}
+
+function renderRows(items){
+  const tbody = $('rows'); tbody.innerHTML='';
+  for(const t of items){
+    const tr = document.createElement('tr');
+    tr.className='border-t border-white/5';
+    tr.innerHTML = `<td class="py-2 pr-3 text-slate-300">${new Date(t.createdAt).toLocaleString()}</td>
+      <td class="py-2 pr-3 font-semibold">${t.soilMoisture}%</td>
+      <td class="py-2 pr-3">${t.battery}%</td>
+      <td class="py-2 pr-3">${t.flowLpm}</td>
+      <td class="py-2 pr-3">${String(t.pump||'--').toUpperCase()}</td>`;
+    tbody.appendChild(tr);
+  }
+}
+function renderTop(t){
+  if(!t) return;
+  $('sm').textContent = t.soilMoisture ?? '--';
+  $('bat').textContent = t.battery ?? '--';
+  $('flow').textContent = t.flowLpm ?? '--';
+  $('pump').textContent = String(t.pump||'--').toUpperCase();
+}
+
+async function loadDevices(){
+  const d = await api('/api/my/devices');
+  state.devices = d.devices || [];
+  const sel = $('deviceSel'); sel.innerHTML='';
+  state.devices.forEach(dev => {
+    const o = document.createElement('option');
+    o.value = dev._id;
+    o.textContent = `${dev.name}${dev.disabled ? ' (DISABLED)' : ''}`;
+    sel.appendChild(o);
+  });
+  state.device = state.devices[0] || null;
+  if(state.device){ sel.value = state.device._id; $('dkey').textContent = state.device.deviceKey; }
+  else { $('status').textContent="Device yo'q. Add sahifada qo'shing."; $('dkey').textContent='—'; }
+  sel.onchange = () => {
+    state.device = state.devices.find(x => x._id === sel.value) || null;
+    $('dkey').textContent = state.device ? state.device.deviceKey : '—';
+    refreshAll().catch(()=>{});
+  };
+}
+
+async function refreshAll(){
+  if(!state.device) return;
+  $('status').textContent='Yuklanyapti...';
+  const r = await api('/api/my/telemetry?deviceId=' + encodeURIComponent(state.device._id) + '&limit=50');
+  renderRows(r.telemetry||[]);
+  renderTop((r.telemetry||[])[0]);
+  $('status').textContent = `✅ ${(r.telemetry||[]).length} ta`;
+}
+
+async function pump(stateStr){
+  if(!state.device) return;
+  await api('/api/my/devices/'+state.device._id+'/pump', { method:'POST', body: JSON.stringify({ state: stateStr }) });
+}
+async function simulate(){
+  if(!state.device) return;
+  await api('/api/my/devices/'+state.device._id+'/simulate', { method:'POST' });
+}
+
+function startSSE(){
+  const es = new EventSource('/api/my/stream');
+  es.addEventListener('hello', () => $('liveBadge').textContent='LIVE');
+  es.addEventListener('telemetry', (e) => {
+    const t = JSON.parse(e.data);
+    if(state.device && t.deviceId === state.device._id){
+      renderTop(t);
+      refreshAll().catch(()=>{});
+    }
+  });
+  es.addEventListener('pump', (e) => {
+    const p = JSON.parse(e.data);
+    if(state.device && p.deviceId === state.device._id){
+      $('pump').textContent = String(p.state||'--').toUpperCase();
+    }
+  });
+  es.onerror = () => $('liveBadge').textContent='OFF';
+}
+
+(async ()=>{
+  const me = await api('/api/auth/me');
+  if(!me.user){ location.href='/login.html'; return; }
+  state.user = me.user;
+  if(me.user.role === 'admin') $('adminLink').classList.remove('hidden');
+  await loadDevices();
+  $('refreshBtn').onclick = refreshAll;
+  $('onBtn').onclick = () => pump('on').catch(e=> $('status').textContent='Xatolik: '+e.message);
+  $('offBtn').onclick = () => pump('off').catch(e=> $('status').textContent='Xatolik: '+e.message);
+  $('simBtn').onclick = () => simulate().catch(e=> $('status').textContent='Xatolik: '+e.message);
+  startSSE();
+  await refreshAll();
+})().catch(err => $('status').textContent='Xatolik: '+err.message);
+</script>
+</body>
+</html>

@@ -1,0 +1,125 @@
+<!doctype html>
+<html lang="uz">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>StartUp uchun — Aqlli sug'orish platformasi</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <meta name="description" content="EcoTreeSense: xo'jaliklar, qurilmalar, sensorlar va sug'orish nazorati (online)." />
+</head>
+<body class="bg-slate-950 text-slate-100">
+<div class="min-h-screen">
+  <header class="sticky top-0 z-40 border-b border-white/10 bg-slate-950/75 backdrop-blur">
+    <div class="max-w-6xl mx-auto px-4 py-4 flex items-center justify-between gap-4">
+      <a href="/" class="flex items-center gap-3">
+        <div class="h-10 w-10 rounded-xl bg-emerald-500/20 border border-emerald-400/30 grid place-items-center">
+          <span class="text-emerald-300 font-bold">E</span>
+        </div>
+        <div>
+          <div class="font-semibold leading-5">EcoTree</div>
+          <div class="text-xs text-slate-400">StartUp uchun · Online</div>
+        </div>
+      </a>
+      <nav class="flex items-center gap-2">
+        <a class="px-3 py-2 rounded-xl hover:bg-white/5 text-sm" href="/login.html">Login</a>
+        <a class="px-3 py-2 rounded-xl bg-emerald-500 text-slate-950 font-semibold hover:bg-emerald-400 text-sm" href="/register.html">Register</a>
+      </nav>
+    </div>
+  </header>
+
+  <main class="max-w-6xl mx-auto px-4 py-10">
+    <div class="grid lg:grid-cols-2 gap-8 items-center">
+      <div>
+        <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full border border-emerald-400/20 bg-emerald-500/10 text-emerald-200 text-xs">
+          <span class="h-2 w-2 rounded-full bg-emerald-400 animate-pulse"></span>
+          Qo'lda qo'shish + Yer xo'jaliklari + Qurilmalar + Admin
+        </div>
+        <h1 class="mt-4 text-4xl md:text-5xl font-semibold leading-tight">
+          Yer xo'jaliklari va qurilmalarni <span class="text-emerald-300">bir joyda</span> boshqaring
+        </h1>
+        <p class="mt-4 text-slate-300">
+          Hozircha hammasi online. Farm va qurilmalar qo'lda kiritiladi (keyin soliq/reestr integratsiya).
+          Qurilma uchun device key beriladi va real sensorlar telemetry yuborishi mumkin.
+        </p>
+        <div class="mt-6 flex flex-wrap gap-3">
+          <a id="goBtn" href="/profile.html" class="px-4 py-2 rounded-xl bg-emerald-500 text-slate-950 font-semibold hover:bg-emerald-400">Profilga o'tish</a>
+          <a href="/add.html" class="px-4 py-2 rounded-xl border border-white/10 hover:bg-white/5">Qo'lda qo'shish</a>
+        </div>
+
+        <div class="mt-8 grid sm:grid-cols-2 gap-3">
+          <div class="p-4 rounded-2xl border border-white/10 bg-white/5">
+            <div class="text-xs text-slate-400">Avto hisob</div>
+            <div class="mt-2 text-lg font-semibold text-emerald-200">Liters / Minutes / Hours</div>
+            <div class="mt-1 text-xs text-slate-400">Area(m²) × mm ÷ L/min</div>
+          </div>
+          <div class="p-4 rounded-2xl border border-white/10 bg-white/5">
+            <div class="text-xs text-slate-400">Monitoring</div>
+            <div class="mt-2 text-lg font-semibold text-emerald-200">Live telemetry (SSE)</div>
+            <div class="mt-1 text-xs text-slate-400">Pump ON/OFF + simulate</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="p-5 rounded-3xl border border-white/10 bg-gradient-to-b from-white/10 to-white/5">
+        <div class="flex items-center justify-between">
+          <div class="text-sm text-slate-300">Status</div>
+          <div id="badge" class="text-xs px-2 py-1 rounded-full bg-white/10 border border-white/10">...</div>
+        </div>
+
+        <div class="mt-5 grid gap-3">
+          <div class="p-4 rounded-2xl border border-white/10 bg-slate-950/40">
+            <div class="text-xs text-slate-400">Account</div>
+            <div class="mt-2 text-2xl font-semibold" id="who">Tekshirilmoqda...</div>
+            <div class="mt-1 text-xs text-slate-500" id="role">-</div>
+          </div>
+
+          <div class="p-4 rounded-2xl border border-white/10 bg-slate-950/40">
+            <div class="text-xs text-slate-400">Tezkor</div>
+            <div class="mt-2 flex flex-wrap gap-2">
+              <a class="px-3 py-2 rounded-xl border border-white/10 hover:bg-white/5 text-sm" href="/profile.html">Profile</a>
+              <a class="px-3 py-2 rounded-xl border border-white/10 hover:bg-white/5 text-sm" href="/add.html">Add</a>
+              <a class="px-3 py-2 rounded-xl border border-white/10 hover:bg-white/5 text-sm" href="/dashboard.html">Monitoring</a>
+              <a id="adminLink" class="hidden px-3 py-2 rounded-xl bg-emerald-500 text-slate-950 font-semibold hover:bg-emerald-400 text-sm" href="/admin.html">Admin</a>
+            </div>
+          </div>
+
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <footer class="border-t border-white/10">
+    <div class="max-w-6xl mx-auto px-4 py-6 text-xs text-slate-500 flex flex-wrap items-center justify-between gap-2">
+      <div>© HALLAYM · StartUp uchun</div>
+      <div id="foot">—</div>
+    </div>
+  </footer>
+</div>
+
+<script>
+async function api(path, opts={}) {
+  const res = await fetch(path, { headers:{'Content-Type':'application/json', ...(opts.headers||{})}, ...opts });
+  const data = await res.json().catch(()=> ({}));
+  return { ok: res.ok, data, status: res.status };
+}
+
+(async () => {
+  const r = await api('/api/auth/me');
+  if(!r.ok || !r.data.user){
+    document.getElementById('badge').textContent = 'GUEST';
+    document.getElementById('who').textContent = 'Mehmon';
+    document.getElementById('role').textContent = 'Login yoki register qiling';
+    document.getElementById('foot').textContent = 'Auth: guest';
+    document.getElementById('goBtn').href = '/login.html';
+    return;
+  }
+  const u = r.data.user;
+  document.getElementById('badge').textContent = 'ONLINE';
+  document.getElementById('who').textContent = u.fullName;
+  document.getElementById('role').textContent = `${u.email} · role: ${u.role}`;
+  document.getElementById('foot').textContent = `Auth: ${u.role}`;
+  if(u.role === 'admin') document.getElementById('adminLink').classList.remove('hidden');
+})();
+</script>
+</body>
+</html>

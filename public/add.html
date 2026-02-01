@@ -1,0 +1,230 @@
+<!doctype html>
+<html lang="uz">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Add — EcoTreeSense</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-slate-950 text-slate-100">
+<header class="sticky top-0 z-40 border-b border-white/10 bg-slate-950/75 backdrop-blur">
+  <div class="max-w-6xl mx-auto px-4 py-4 flex items-center justify-between gap-4">
+    <a href="/" class="flex items-center gap-3">
+      <div class="h-9 w-9 rounded-xl bg-emerald-500/20 border border-emerald-400/30 grid place-items-center"><span class="text-emerald-300 font-bold">E</span></div>
+      <div><div class="font-semibold leading-5">EcoTreeSense</div><div class="text-xs text-slate-400">Add (qo'lda kiritish)</div></div>
+    </a>
+    <nav class="flex items-center gap-2">
+      <a class="px-3 py-2 rounded-xl hover:bg-white/5 text-sm" href="/profile.html">Profile</a>
+      <a class="px-3 py-2 rounded-xl hover:bg-white/5 text-sm" href="/dashboard.html">Monitoring</a>
+    </nav>
+  </div>
+</header>
+
+<main class="max-w-6xl mx-auto px-4 py-8">
+  <div class="grid lg:grid-cols-2 gap-4">
+    <section id="farm" class="p-5 rounded-2xl border border-white/10 bg-white/5">
+      <div class="flex items-start justify-between gap-2">
+        <div>
+          <h2 class="text-xl font-semibold">Yer xo'jaligi qo'shish</h2>
+          <p class="text-sm text-slate-400 mt-1">Maydon (m²) va ekin turi bo'yicha.</p>
+        </div>
+        <span class="text-xs px-2 py-1 rounded-full border border-white/10 bg-white/10">FARM</span>
+      </div>
+
+      <div class="mt-4 grid sm:grid-cols-2 gap-3">
+        <div class="sm:col-span-2">
+          <label class="text-xs text-slate-400">Nomi</label>
+          <input id="fName" class="mt-1 w-full bg-slate-900 border border-white/10 rounded-xl px-3 py-2 text-sm" placeholder="Masalan: Tomorqa #1" />
+        </div>
+        <div>
+          <label class="text-xs text-slate-400">Joylashuv</label>
+          <input id="fLoc" class="mt-1 w-full bg-slate-900 border border-white/10 rounded-xl px-3 py-2 text-sm" placeholder="Qarshi" />
+        </div>
+        <div>
+          <label class="text-xs text-slate-400">Maydon (m²)</label>
+          <input id="fArea" type="number" min="0" class="mt-1 w-full bg-slate-900 border border-white/10 rounded-xl px-3 py-2 text-sm" value="1000" />
+        </div>
+        <div>
+          <label class="text-xs text-slate-400">Ekin turi</label>
+          <input id="fCrop" class="mt-1 w-full bg-slate-900 border border-white/10 rounded-xl px-3 py-2 text-sm" placeholder="Paxta / Bug'doy / Sabzavot..." />
+        </div>
+        <div class="sm:col-span-2">
+          <label class="text-xs text-slate-400">Izoh</label>
+          <textarea id="fNotes" rows="3" class="mt-1 w-full bg-slate-900 border border-white/10 rounded-xl px-3 py-2 text-sm" placeholder="ixtiyoriy..."></textarea>
+        </div>
+      </div>
+
+      <button id="saveFarm" class="mt-4 w-full px-4 py-2 rounded-xl bg-emerald-500 text-slate-950 font-semibold hover:bg-emerald-400">Farm saqlash</button>
+      <div class="mt-3 text-xs text-slate-500" id="farmStatus">—</div>
+    </section>
+
+    <section id="device" class="p-5 rounded-2xl border border-white/10 bg-white/5">
+      <div class="flex items-start justify-between gap-2">
+        <div>
+          <h2 class="text-xl font-semibold">Qurilma qo'shish</h2>
+          <p class="text-sm text-slate-400 mt-1">Sensorlar + motor (L/min) + avto hisob.</p>
+        </div>
+        <span class="text-xs px-2 py-1 rounded-full border border-white/10 bg-white/10">DEVICE</span>
+      </div>
+
+      <div class="mt-4 grid sm:grid-cols-2 gap-3">
+        <div class="sm:col-span-2">
+          <label class="text-xs text-slate-400">Nomi</label>
+          <input id="dName" class="mt-1 w-full bg-slate-900 border border-white/10 rounded-xl px-3 py-2 text-sm" placeholder="Masalan: Sensor+Pump #1" />
+        </div>
+
+        <div>
+          <label class="text-xs text-slate-400">Controller</label>
+          <select id="controller" class="mt-1 w-full bg-slate-900 border border-white/10 rounded-xl px-3 py-2 text-sm">
+            <option>ESP32</option><option>ESP8266</option><option>Arduino</option><option>STM32</option><option>Raspberry Pi</option>
+          </select>
+        </div>
+
+        <div>
+          <label class="text-xs text-slate-400">Bog'lanadigan farm</label>
+          <select id="farmSel" class="mt-1 w-full bg-slate-900 border border-white/10 rounded-xl px-3 py-2 text-sm">
+            <option value="">(ixtiyoriy)</option>
+          </select>
+        </div>
+
+        <div>
+          <label class="text-xs text-slate-400">Motor suv tortish (L/min)</label>
+          <input id="flow" type="number" min="0" class="mt-1 w-full bg-slate-900 border border-white/10 rounded-xl px-3 py-2 text-sm" value="100" />
+        </div>
+        <div>
+          <label class="text-xs text-slate-400">Motor quvvat (W)</label>
+          <input id="power" type="number" min="0" class="mt-1 w-full bg-slate-900 border border-white/10 rounded-xl px-3 py-2 text-sm" value="600" />
+        </div>
+
+        <div class="sm:col-span-2">
+          <label class="text-xs text-slate-400">Sensorlar (vergul bilan)</label>
+          <input id="sensors" class="mt-1 w-full bg-slate-900 border border-white/10 rounded-xl px-3 py-2 text-sm"
+                 value="soilMoisture, flow, pressure, temp, humidity, battery" />
+          <div class="mt-1 text-xs text-slate-500">Masalan: soilMoisture, flow, pressure, temp, humidity</div>
+        </div>
+
+        <div class="sm:col-span-2">
+          <label class="text-xs text-slate-400">Izoh</label>
+          <textarea id="dNotes" rows="2" class="mt-1 w-full bg-slate-900 border border-white/10 rounded-xl px-3 py-2 text-sm" placeholder="ixtiyoriy..."></textarea>
+        </div>
+      </div>
+
+      <div class="mt-4 p-4 rounded-2xl border border-white/10 bg-slate-950/40">
+        <div class="text-sm font-semibold">Avto hisoblash (sug'orish davomiyligi)</div>
+        <div class="text-xs text-slate-500 mt-1">1mm × 1m² = 1 litr. Liters = area × mm. Minutes = liters ÷ L/min.</div>
+
+        <div class="mt-3 grid sm:grid-cols-3 gap-3">
+          <div>
+            <label class="text-xs text-slate-400">Target (mm)</label>
+            <input id="mm" type="number" min="0" class="mt-1 w-full bg-slate-900 border border-white/10 rounded-xl px-3 py-2 text-sm" value="5" />
+          </div>
+          <div>
+            <label class="text-xs text-slate-400">Area (m²)</label>
+            <input id="calcArea" type="number" min="0" class="mt-1 w-full bg-slate-900 border border-white/10 rounded-xl px-3 py-2 text-sm" value="1000" />
+          </div>
+          <div class="flex items-end">
+            <button id="calcBtn" class="w-full px-4 py-2 rounded-xl border border-white/10 hover:bg-white/5 text-sm">Hisobla</button>
+          </div>
+        </div>
+
+        <div class="mt-3 grid grid-cols-3 gap-2 text-sm">
+          <div class="p-3 rounded-xl border border-white/10 bg-white/5"><div class="text-xs text-slate-400">Liters</div><div class="mt-1 font-semibold text-emerald-200" id="liters">—</div></div>
+          <div class="p-3 rounded-xl border border-white/10 bg-white/5"><div class="text-xs text-slate-400">Minutes</div><div class="mt-1 font-semibold text-emerald-200" id="minutes">—</div></div>
+          <div class="p-3 rounded-xl border border-white/10 bg-white/5"><div class="text-xs text-slate-400">Hours</div><div class="mt-1 font-semibold text-emerald-200" id="hours">—</div></div>
+        </div>
+
+        <div class="mt-2 text-xs text-slate-500" id="calcStatus">—</div>
+      </div>
+
+      <button id="saveDevice" class="mt-4 w-full px-4 py-2 rounded-xl bg-emerald-500 text-slate-950 font-semibold hover:bg-emerald-400">Device saqlash</button>
+      <div class="mt-3 text-xs text-slate-500" id="deviceStatus">—</div>
+    </section>
+  </div>
+</main>
+
+<script>
+const $ = (id) => document.getElementById(id);
+
+async function api(path, opts={}) {
+  const res = await fetch(path, { headers:{'Content-Type':'application/json', ...(opts.headers||{})}, ...opts });
+  const data = await res.json().catch(()=> ({}));
+  if(!res.ok) throw new Error(data.error || ('HTTP '+res.status));
+  return data;
+}
+
+async function guard(){
+  const me = await api('/api/auth/me');
+  if(!me.user) location.href='/login.html';
+}
+
+async function loadFarms(){
+  const f = await api('/api/my/farms');
+  const sel = $('farmSel');
+  sel.innerHTML = '<option value="">(ixtiyoriy)</option>';
+  (f.farms||[]).forEach(x => {
+    const o = document.createElement('option');
+    o.value = x._id;
+    o.textContent = `${x.name}${x.location ? ' — ' + x.location : ''}`;
+    sel.appendChild(o);
+  });
+}
+
+$('saveFarm').onclick = async () => {
+  $('farmStatus').textContent = 'Saqlanyapti...';
+  try{
+    await api('/api/my/farms', { method:'POST', body: JSON.stringify({
+      name: $('fName').value.trim(),
+      location: $('fLoc').value.trim(),
+      areaM2: Number($('fArea').value || 0),
+      crop: $('fCrop').value.trim(),
+      notes: $('fNotes').value.trim()
+    })});
+    $('farmStatus').textContent = '✅ Saqlandi';
+    $('fName').value=''; $('fLoc').value=''; $('fCrop').value=''; $('fNotes').value='';
+    await loadFarms();
+  }catch(e){
+    $('farmStatus').textContent = 'Xatolik: ' + e.message;
+  }
+};
+
+$('calcBtn').onclick = async () => {
+  $('calcStatus').textContent = 'Hisoblanmoqda...';
+  try{
+    const r = await api('/api/my/calc/irrigation', { method:'POST', body: JSON.stringify({
+      areaM2: Number($('calcArea').value || 0),
+      mmTarget: Number($('mm').value || 0),
+      motorFlowLpm: Number($('flow').value || 0)
+    })});
+    $('liters').textContent = r.litersNeeded;
+    $('minutes').textContent = r.minutes;
+    $('hours').textContent = r.hours;
+    $('calcStatus').textContent = '✅ Tayyor';
+  }catch(e){
+    $('calcStatus').textContent = 'Xatolik: ' + e.message;
+  }
+};
+
+$('saveDevice').onclick = async () => {
+  $('deviceStatus').textContent = 'Saqlanyapti...';
+  try{
+    const sensors = $('sensors').value.split(',').map(s=>s.trim()).filter(Boolean);
+    await api('/api/my/devices', { method:'POST', body: JSON.stringify({
+      name: $('dName').value.trim(),
+      farmId: $('farmSel').value || null,
+      motorFlowLpm: Number($('flow').value || 0),
+      motorPowerW: Number($('power').value || 0),
+      sensors,
+      controller: $('controller').value,
+      notes: $('dNotes').value.trim()
+    })});
+    $('deviceStatus').textContent = "✅ Saqlandi. Profile'da device key ko'rasiz.";
+    $('dName').value=''; $('dNotes').value='';
+  }catch(e){
+    $('deviceStatus').textContent = 'Xatolik: ' + e.message;
+  }
+};
+
+(async ()=>{ await guard(); await loadFarms(); })();
+</script>
+</body>
+</html>

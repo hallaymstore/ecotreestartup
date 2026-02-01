@@ -1,0 +1,231 @@
+<!doctype html>
+<html lang="uz">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Admin — EcoTreeSense</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-slate-950 text-slate-100">
+<header class="sticky top-0 z-40 border-b border-white/10 bg-slate-950/75 backdrop-blur">
+  <div class="max-w-6xl mx-auto px-4 py-4 flex items-center justify-between gap-4">
+    <a href="/" class="flex items-center gap-3">
+      <div class="h-9 w-9 rounded-xl bg-emerald-500/20 border border-emerald-400/30 grid place-items-center"><span class="text-emerald-300 font-bold">E</span></div>
+      <div><div class="font-semibold leading-5">EcoTreeSense</div><div class="text-xs text-slate-400">Admin panel</div></div>
+    </a>
+    <nav class="flex items-center gap-2">
+      <a class="px-3 py-2 rounded-xl hover:bg-white/5 text-sm" href="/profile.html">Profile</a>
+      <a class="px-3 py-2 rounded-xl hover:bg-white/5 text-sm" href="/dashboard.html">Monitoring</a>
+    </nav>
+  </div>
+</header>
+
+<main class="max-w-6xl mx-auto px-4 py-8">
+  <div class="flex flex-wrap items-end justify-between gap-3">
+    <div>
+      <h1 class="text-2xl font-semibold">Admin nazorati</h1>
+      <p class="text-slate-400 text-sm mt-1">Users → farms → devices boshqaruvi (disable/delete).</p>
+    </div>
+    <div class="flex items-center gap-2">
+      <button id="reloadBtn" class="px-4 py-2 rounded-xl border border-white/10 hover:bg-white/5 text-sm">Yangilash</button>
+      <select id="limit" class="bg-slate-900 border border-white/10 rounded-xl px-3 py-2 text-sm">
+        <option value="50">Audit 50</option>
+        <option value="100" selected>Audit 100</option>
+        <option value="200">Audit 200</option>
+      </select>
+    </div>
+  </div>
+
+  <section class="mt-6 grid lg:grid-cols-3 gap-3">
+    <div class="lg:col-span-2 p-5 rounded-2xl border border-white/10 bg-white/5">
+      <div class="flex items-center justify-between">
+        <div><div class="font-semibold">Users</div><div class="text-xs text-slate-500">Disable/Enable/Delete + detail</div></div>
+        <div class="text-xs px-2 py-1 rounded-full border border-white/10 bg-white/10" id="count">—</div>
+      </div>
+      <div class="mt-4 overflow-auto">
+        <table class="min-w-full text-sm">
+          <thead class="text-slate-400"><tr><th class="text-left py-2 pr-3">User</th><th class="text-left py-2 pr-3">Role</th><th class="text-left py-2 pr-3">Status</th><th class="text-left py-2 pr-3">Action</th></tr></thead>
+          <tbody id="rows" class="align-top"></tbody>
+        </table>
+      </div>
+      <div class="mt-3 text-xs text-slate-500" id="status">—</div>
+    </div>
+
+    <div class="p-5 rounded-2xl border border-white/10 bg-white/5">
+      <div class="font-semibold">User detail</div>
+      <div class="text-xs text-slate-500 mt-1">Tanlangan user farms/devices</div>
+
+      <div class="mt-4 p-4 rounded-2xl border border-white/10 bg-slate-950/40">
+        <div class="text-sm font-semibold" id="uName">—</div>
+        <div class="text-xs text-slate-500 mt-1" id="uEmail">—</div>
+        <div class="mt-2 text-xs text-slate-500" id="uMeta">—</div>
+      </div>
+
+      <div class="mt-4">
+        <div class="text-sm font-semibold">Farms</div>
+        <div class="mt-2 space-y-2" id="uFarms"></div>
+      </div>
+
+      <div class="mt-4">
+        <div class="text-sm font-semibold">Devices</div>
+        <div class="mt-2 space-y-2" id="uDevices"></div>
+      </div>
+    </div>
+  </section>
+
+  <section class="mt-6 p-5 rounded-2xl border border-white/10 bg-white/5">
+    <div><div class="font-semibold">Audit log</div><div class="text-xs text-slate-500">Kim nima qildi</div></div>
+    <div class="mt-4 space-y-2" id="audit"></div>
+  </section>
+</main>
+
+<script>
+const $ = (id) => document.getElementById(id);
+let users = [];
+let selectedId = null;
+
+async function api(path, opts={}) {
+  const res = await fetch(path, { headers:{'Content-Type':'application/json', ...(opts.headers||{})}, ...opts });
+  const data = await res.json().catch(()=> ({}));
+  if(!res.ok) throw new Error(data.error || ('HTTP '+res.status));
+  return data;
+}
+function esc(s){ return String(s||'').replace(/[&<>"']/g, c=>({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' }[c])); }
+
+function row(u){
+  const dis = u.disabled ? 'DISABLED' : 'ACTIVE';
+  const cls = u.disabled ? 'text-red-200' : 'text-emerald-200';
+  return `<tr class="border-t border-white/5">
+    <td class="py-2 pr-3">
+      <button class="text-left hover:underline" data-pick="${u._id}">
+        <div class="font-semibold">${esc(u.fullName||'-')}</div>
+        <div class="text-xs text-slate-500">${esc(u.email||'')}</div>
+      </button>
+    </td>
+    <td class="py-2 pr-3">${esc(u.role||'user')}</td>
+    <td class="py-2 pr-3"><span class="${cls} font-semibold">${dis}</span></td>
+    <td class="py-2 pr-3">
+      <div class="flex flex-wrap gap-2">
+        <button class="px-3 py-1.5 rounded-lg border border-white/10 hover:bg-white/5 text-xs" data-toggle="${u._id}" data-next="${u.disabled ? '0' : '1'}">${u.disabled ? 'Enable' : 'Disable'}</button>
+        <button class="px-3 py-1.5 rounded-lg border border-red-400/20 bg-red-500/10 hover:bg-red-500/20 text-xs text-red-200" data-del="${u._id}">Delete</button>
+      </div>
+    </td>
+  </tr>`;
+}
+
+function farmItem(f){
+  return `<div class="p-3 rounded-xl border border-white/10 bg-slate-950/40 text-xs">
+    <div class="font-semibold">${esc(f.name)}</div>
+    <div class="text-slate-500 mt-1">${esc(f.location||'')} · ${Number(f.areaM2||0)} m²</div>
+  </div>`;
+}
+
+function devItem(d){
+  const dis = d.disabled ? ' · DISABLED' : '';
+  return `<div class="p-3 rounded-xl border border-white/10 bg-slate-950/40 text-xs">
+    <div class="font-semibold">${esc(d.name)}${dis}</div>
+    <div class="text-slate-500 mt-1">Flow: ${Number(d.motorFlowLpm||0)} L/min · Pump: ${(d.pump||'off').toUpperCase()}</div>
+    <div class="mt-2 flex gap-2">
+      <button class="px-2 py-1 rounded-lg border border-white/10 hover:bg-white/5" data-dev-toggle="${d._id}" data-next="${d.disabled ? '0':'1'}">${d.disabled?'Enable':'Disable'}</button>
+      <button class="px-2 py-1 rounded-lg border border-red-400/20 bg-red-500/10 hover:bg-red-500/20 text-red-200" data-dev-del="${d._id}">Delete</button>
+    </div>
+  </div>`;
+}
+
+function auditItem(a){
+  return `<div class="p-4 rounded-2xl border border-white/10 bg-slate-950/40">
+    <div class="flex items-start justify-between gap-3">
+      <div>
+        <div class="text-sm font-semibold">${esc(a.action||'-')}</div>
+        <div class="text-xs text-slate-500 mt-1">actorId: ${esc(a.actorId||'-')}</div>
+        <div class="text-xs text-slate-600 mt-1">${esc(JSON.stringify(a.meta||{}))}</div>
+      </div>
+      <div class="text-xs text-slate-400">${new Date(a.createdAt).toLocaleString()}</div>
+    </div>
+  </div>`;
+}
+
+async function guard(){
+  const me = await api('/api/auth/me');
+  if(!me.user) location.href='/login.html';
+  if(me.user.role !== 'admin') location.href='/profile.html';
+}
+
+async function loadUsers(){
+  $('status').textContent='Yuklanyapti...';
+  const r = await api('/api/admin/users');
+  users = r.users || [];
+  $('rows').innerHTML = users.map(row).join('');
+  $('count').textContent = users.length + ' users';
+  $('status').textContent = '✅';
+}
+
+async function pick(id){
+  selectedId = id;
+  const d = await api('/api/admin/user/' + id);
+  $('uName').textContent = d.user.fullName || '-';
+  $('uEmail').textContent = d.user.email || '-';
+  $('uMeta').textContent = `role: ${d.user.role} · disabled: ${d.user.disabled?'yes':'no'} · created: ${new Date(d.user.createdAt).toLocaleDateString()}`;
+  $('uFarms').innerHTML = (d.farms||[]).length ? d.farms.map(farmItem).join('') : `<div class="text-xs text-slate-500">Farm yo'q</div>`;
+  $('uDevices').innerHTML = (d.devices||[]).length ? d.devices.map(devItem).join('') : `<div class="text-xs text-slate-500">Device yo'q</div>`;
+}
+
+async function loadAudit(){
+  const lim = Number($('limit').value || 100);
+  const r = await api('/api/admin/audit?limit=' + lim);
+  $('audit').innerHTML = (r.audit||[]).map(auditItem).join('') || `<div class="text-xs text-slate-500">Bo'sh</div>`;
+}
+
+document.addEventListener('click', async (e) => {
+  const pickBtn = e.target.closest('[data-pick]');
+  const togBtn = e.target.closest('[data-toggle]');
+  const delBtn = e.target.closest('[data-del]');
+  const devTog = e.target.closest('[data-dev-toggle]');
+  const devDel = e.target.closest('[data-dev-del]');
+
+  try{
+    if(pickBtn) await pick(pickBtn.getAttribute('data-pick'));
+    if(togBtn){
+      const id = togBtn.getAttribute('data-toggle');
+      const disabled = togBtn.getAttribute('data-next') === '1';
+      await api('/api/admin/user/'+id+'/toggle', { method:'POST', body: JSON.stringify({ disabled }) });
+      await loadUsers(); await loadAudit();
+      if(selectedId === id) await pick(id);
+    }
+    if(delBtn){
+      const id = delBtn.getAttribute('data-del');
+      if(confirm("User va barcha ma'lumotlari o'chirilsinmi?")){
+        await api('/api/admin/user/'+id, { method:'DELETE' });
+        selectedId = null;
+        $('uName').textContent='—'; $('uEmail').textContent='—'; $('uMeta').textContent='—';
+        $('uFarms').innerHTML=''; $('uDevices').innerHTML='';
+        await loadUsers(); await loadAudit();
+      }
+    }
+    if(devTog){
+      const id = devTog.getAttribute('data-dev-toggle');
+      const disabled = devTog.getAttribute('data-next') === '1';
+      await api('/api/admin/device/'+id+'/toggle', { method:'POST', body: JSON.stringify({ disabled }) });
+      await loadAudit();
+      if(selectedId) await pick(selectedId);
+    }
+    if(devDel){
+      const id = devDel.getAttribute('data-dev-del');
+      if(confirm("Device o'chirilsinmi? Telemetry ham o'chadi.")){
+        await api('/api/admin/device/'+id, { method:'DELETE' });
+        await loadAudit();
+        if(selectedId) await pick(selectedId);
+      }
+    }
+  }catch(err){
+    $('status').textContent = 'Xatolik: ' + err.message;
+  }
+});
+
+$('reloadBtn').onclick = async () => { await loadUsers(); await loadAudit(); };
+$('limit').onchange = () => loadAudit().catch(()=>{});
+
+(async()=>{ await guard(); await loadUsers(); await loadAudit(); })().catch(err => $('status').textContent='Xatolik: '+err.message);
+</script>
+</body>
+</html>

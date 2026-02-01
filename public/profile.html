@@ -1,0 +1,185 @@
+<!doctype html>
+<html lang="uz">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Profile — EcoTree</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-slate-950 text-slate-100">
+<header class="sticky top-0 z-40 border-b border-white/10 bg-slate-950/75 backdrop-blur">
+  <div class="max-w-6xl mx-auto px-4 py-4 flex items-center justify-between gap-4">
+    <a href="/" class="flex items-center gap-3">
+      <div class="h-9 w-9 rounded-xl bg-emerald-500/20 border border-emerald-400/30 grid place-items-center"><span class="text-emerald-300 font-bold">E</span></div>
+      <div><div class="font-semibold leading-5">EcoTree</div><div class="text-xs text-slate-400">Profile</div></div>
+    </a>
+    <nav class="flex items-center gap-2">
+      <a class="px-3 py-2 rounded-xl hover:bg-white/5 text-sm" href="/add.html">Add</a>
+      <a class="px-3 py-2 rounded-xl hover:bg-white/5 text-sm" href="/dashboard.html">Monitoring</a>
+      <a id="adminLink" class="hidden px-3 py-2 rounded-xl bg-emerald-500 text-slate-950 font-semibold hover:bg-emerald-400 text-sm" href="/admin.html">Admin</a>
+      <button id="logoutBtn" class="px-3 py-2 rounded-xl border border-white/10 hover:bg-white/5 text-sm">Logout</button>
+    </nav>
+  </div>
+</header>
+
+<main class="max-w-6xl mx-auto px-4 py-8">
+  <div class="grid lg:grid-cols-3 gap-4">
+    <section class="lg:col-span-1 p-5 rounded-2xl border border-white/10 bg-white/5">
+      <div class="flex items-center justify-between">
+        <div class="text-sm text-slate-300">Account</div>
+        <div class="text-xs px-2 py-1 rounded-full bg-white/10 border border-white/10" id="roleBadge">...</div>
+      </div>
+      <div class="mt-4">
+        <div class="text-2xl font-semibold" id="name">—</div>
+        <div class="text-sm text-slate-400 mt-1" id="email">—</div>
+        <div class="text-sm text-slate-400 mt-1" id="phone">—</div>
+      </div>
+      <div class="mt-6 p-4 rounded-2xl border border-white/10 bg-slate-950/40">
+        <div class="text-xs text-slate-400">Tezkor</div>
+        <div class="mt-3 grid grid-cols-2 gap-2">
+          <a class="px-3 py-2 rounded-xl border border-white/10 hover:bg-white/5 text-sm text-center" href="/add.html#farm">+ Farm</a>
+          <a class="px-3 py-2 rounded-xl border border-white/10 hover:bg-white/5 text-sm text-center" href="/add.html#device">+ Device</a>
+        </div>
+        <div class="mt-3 text-xs text-slate-500">Hozircha qo'lda kiritiladi.</div>
+      </div>
+      <div class="mt-5 text-xs text-slate-500" id="status">—</div>
+    </section>
+
+    <section class="lg:col-span-2 grid gap-4">
+      <div class="p-5 rounded-2xl border border-white/10 bg-white/5">
+        <div class="flex items-center justify-between gap-3">
+          <div>
+            <div class="text-lg font-semibold">Yer xo'jaliklari</div>
+            <div class="text-xs text-slate-500">Maydon, ekin turi, joylashuv</div>
+          </div>
+          <a class="px-3 py-2 rounded-xl bg-emerald-500 text-slate-950 font-semibold hover:bg-emerald-400 text-sm" href="/add.html#farm">+ Farm</a>
+        </div>
+        <div class="mt-4 grid sm:grid-cols-2 gap-3" id="farms"></div>
+      </div>
+
+      <div class="p-5 rounded-2xl border border-white/10 bg-white/5">
+        <div class="flex items-center justify-between gap-3">
+          <div>
+            <div class="text-lg font-semibold">Qurilmalar</div>
+            <div class="text-xs text-slate-500">Sensorlar + motor (L/min) + pump control</div>
+          </div>
+          <a class="px-3 py-2 rounded-xl bg-emerald-500 text-slate-950 font-semibold hover:bg-emerald-400 text-sm" href="/add.html#device">+ Device</a>
+        </div>
+        <div class="mt-4 grid sm:grid-cols-2 gap-3" id="devices"></div>
+      </div>
+    </section>
+  </div>
+</main>
+
+<script>
+const $ = (id) => document.getElementById(id);
+
+async function api(path, opts={}) {
+  const res = await fetch(path, { headers:{'Content-Type':'application/json', ...(opts.headers||{})}, ...opts });
+  const data = await res.json().catch(()=> ({}));
+  if(!res.ok) throw new Error(data.error || ('HTTP '+res.status));
+  return data;
+}
+
+function esc(s){ return String(s||'').replace(/[&<>"']/g, c=>({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' }[c])); }
+
+function farmCard(f){
+  return `<div class="p-4 rounded-2xl border border-white/10 bg-slate-950/40">
+    <div class="flex items-start justify-between gap-2">
+      <div>
+        <div class="font-semibold">${esc(f.name)}</div>
+        <div class="text-xs text-slate-500 mt-1">${esc(f.location||'')}</div>
+      </div>
+      <button class="text-xs px-2 py-1 rounded-lg border border-white/10 hover:bg-white/5" data-del-farm="${f._id}">Delete</button>
+    </div>
+    <div class="mt-3 text-sm">Area: <span class="font-semibold text-emerald-200">${Number(f.areaM2||0)}</span> m²</div>
+    <div class="mt-1 text-sm">Crop: <span class="text-slate-200">${esc(f.crop||'-')}</span></div>
+    <div class="mt-2 text-xs text-slate-600">ID: ${f._id}</div>
+  </div>`;
+}
+
+function deviceCard(d){
+  const sensors = (d.sensors||[]).slice(0,6).map(s=>`<span class="px-2 py-1 rounded-full border border-white/10 bg-white/5 text-xs">${esc(s)}</span>`).join(' ');
+  const dis = d.disabled ? `<span class="text-xs px-2 py-1 rounded-full border border-red-400/20 bg-red-500/10 text-red-200">DISABLED</span>` : '';
+  return `<div class="p-4 rounded-2xl border border-white/10 bg-slate-950/40">
+    <div class="flex items-start justify-between gap-2">
+      <div>
+        <div class="font-semibold">${esc(d.name)}</div>
+        <div class="text-xs text-slate-500 mt-1">${esc(d.controller||'')}</div>
+      </div>
+      <button class="text-xs px-2 py-1 rounded-lg border border-white/10 hover:bg-white/5" data-del-device="${d._id}">Delete</button>
+    </div>
+    <div class="mt-3 flex flex-wrap gap-2 items-center">
+      <div class="text-sm">Motor: <span class="font-semibold text-emerald-200">${Number(d.motorFlowLpm||0)}</span> L/min</div>
+      ${dis}
+    </div>
+    <div class="mt-3 flex flex-wrap gap-1">${sensors || `<span class="text-xs text-slate-500">sensorlar kiritilmagan</span>`}</div>
+    <div class="mt-4 flex flex-wrap gap-2">
+      <button class="px-3 py-2 rounded-xl bg-emerald-500 text-slate-950 font-semibold hover:bg-emerald-400 text-sm" data-pump="on" data-id="${d._id}">Pump ON</button>
+      <button class="px-3 py-2 rounded-xl border border-white/10 hover:bg-white/5 text-sm" data-pump="off" data-id="${d._id}">Pump OFF</button>
+      <button class="px-3 py-2 rounded-xl border border-white/10 hover:bg-white/5 text-sm" data-sim="${d._id}">Simulate</button>
+    </div>
+    <details class="mt-3">
+      <summary class="cursor-pointer text-xs text-slate-400">Device key (sensor ulash uchun)</summary>
+      <div class="mt-2 text-xs text-slate-300 break-all p-3 rounded-xl border border-white/10 bg-white/5">${esc(d.deviceKey)}</div>
+    </details>
+    <div class="mt-2 text-xs text-slate-600">ID: ${d._id}</div>
+  </div>`;
+}
+
+async function load(){
+  $('status').textContent = 'Yuklanyapti...';
+  const me = await api('/api/auth/me');
+  if(!me.user){ location.href='/login.html'; return; }
+  $('name').textContent = me.user.fullName;
+  $('email').textContent = me.user.email;
+  $('phone').textContent = me.user.phone ? ('Tel: '+me.user.phone) : 'Tel: —';
+  $('roleBadge').textContent = me.user.role.toUpperCase();
+  if(me.user.role === 'admin') $('adminLink').classList.remove('hidden');
+
+  const farms = await api('/api/my/farms');
+  $('farms').innerHTML = (farms.farms||[]).length ? (farms.farms||[]).map(farmCard).join('') :
+    `<div class="text-sm text-slate-400">Hali farm yo'q. <a class="text-emerald-200 underline" href="/add.html#farm">Qo'shish</a></div>`;
+
+  const devices = await api('/api/my/devices');
+  $('devices').innerHTML = (devices.devices||[]).length ? (devices.devices||[]).map(deviceCard).join('') :
+    `<div class="text-sm text-slate-400">Hali device yo'q. <a class="text-emerald-200 underline" href="/add.html#device">Qo'shish</a></div>`;
+
+  $('status').textContent = `✅ Farms: ${(farms.farms||[]).length} · Devices: ${(devices.devices||[]).length}`;
+}
+
+$('logoutBtn').onclick = async () => { await api('/api/auth/logout', { method:'POST' }); location.href='/'; };
+
+document.addEventListener('click', async (e) => {
+  const fd = e.target.closest('[data-del-farm]');
+  const dd = e.target.closest('[data-del-device]');
+  const pump = e.target.closest('[data-pump]');
+  const sim = e.target.closest('[data-sim]');
+  try{
+    if(fd){
+      const id = fd.getAttribute('data-del-farm');
+      if(confirm("Farm o'chirilsinmi?")){ await api('/api/my/farms/'+id, { method:'DELETE' }); await load(); }
+    }
+    if(dd){
+      const id = dd.getAttribute('data-del-device');
+      if(confirm("Device o'chirilsinmi? Telemetry ham o'chadi.")){ await api('/api/my/devices/'+id, { method:'DELETE' }); await load(); }
+    }
+    if(pump){
+      const id = pump.getAttribute('data-id');
+      const state = pump.getAttribute('data-pump');
+      await api('/api/my/devices/'+id+'/pump', { method:'POST', body: JSON.stringify({ state }) });
+      await load();
+    }
+    if(sim){
+      const id = sim.getAttribute('data-sim');
+      await api('/api/my/devices/'+id+'/simulate', { method:'POST' });
+    }
+  }catch(err){
+    $('status').textContent = 'Xatolik: ' + err.message;
+  }
+});
+
+load().catch(err => $('status').textContent = 'Xatolik: ' + err.message);
+</script>
+</body>
+</html>
